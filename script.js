@@ -76,11 +76,11 @@ resetBtn.addEventListener("click", resetGame);
 newBtn.addEventListener("click", resetGame);
 
 const winnerMsg = (winner) => {
-  msg.innerHTML = `Wohoo! Congratulations &#x1F389;, Winner is ${winner}`;
+  msg.innerHTML = `Wohoo! Congratulations &#x1F389;, Winner is ${winner}.`;
   msgContainer.classList.remove("hide");
 };
 
 const drawMsg = () => {
-  msg.innerHTML = `It's a Draw!`;
+  msg.innerHTML = `It's a Draw! &#x1F61E;, Play Again!`;
   msgContainer.classList.remove("hide");
 };
