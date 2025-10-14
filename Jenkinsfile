@@ -19,7 +19,7 @@ pipeline {
                 fi
 
                 # Install tools locally inside the workspace (no -g, no root needed)
-                npm install --save-dev htmlhint stylelint eslint
+                npm install --save-dev htmlhint stylelint stylelint-config-standard eslint
 
                 # Run linters using npx
                 npx htmlhint .
