@@ -9,29 +9,41 @@ pipeline {
             }
         }
 
-        stage('Install & Lint') {
+        stage('Install Dependencies') {
             steps {
-                echo '🔍 Installing dependencies and running linters...'
+                echo '📦 Installing npm packages...'
                 sh '''
-                # Initialize npm only if package.json doesn't exist
+                # Initialize npm if package.json does not exist
                 if [ ! -f package.json ]; then
                   npm init -y
                 fi
 
-                # Install tools locally inside the workspace (no -g, no root needed)
-                npm install --save-dev htmlhint stylelint stylelint-config-standard eslint
+                # Install dependencies locally (no -g)
+                npm install --save-dev htmlhint stylelint stylelint-config-standard eslint@8
+                '''
+            }
+        }
 
-                # Run linters using npx
+        stage('Lint HTML/CSS/JS') {
+            steps {
+                echo '🔍 Running linters...'
+
+                sh '''
+                # HTML lint
                 npx htmlhint .
-                npx stylelint "**/*.css"
-                npx eslint .
+
+                # Stylelint with auto-fix
+                npx stylelint "**/*.css" --fix
+
+                # ESLint (v8) with auto-fix
+                npx eslint . --fix
                 '''
             }
         }
 
         stage('Archive Website') {
             steps {
-                echo '📦 Archiving static site files...'
+                echo '📦 Archiving project files...'
                 archiveArtifacts artifacts: '**/*', fingerprint: true
             }
         }
