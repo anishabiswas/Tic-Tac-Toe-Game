@@ -5,34 +5,34 @@ pipeline {
         stage('Checkout') {
             steps {
                 echo '📥 Cloning repository...'
-                checkout scm
+                git branch: 'main', url: 'https://github.com/anishabiswas/Tic-Tac-Toe-Game'
             }
         }
 
-        stage('Code Quality: Lint HTML/CSS/JS') {
+        stage('Install & Lint') {
             steps {
-                echo '🔍 Checking code quality...'
-
-                // Install linters (if not already installed)
+                echo '🔍 Installing dependencies and running linters...'
                 sh '''
-                npm install -g htmlhint stylelint eslint
+                # Initialize npm only if package.json doesn't exist
+                if [ ! -f package.json ]; then
+                  npm init -y
+                fi
+
+                # Install tools locally inside the workspace (no -g, no root needed)
+                npm install --save-dev htmlhint stylelint eslint
+
+                # Run linters using npx
+                npx htmlhint .
+                npx stylelint "**/*.css"
+                npx eslint .
                 '''
-
-                // Lint HTML files
-                sh 'htmlhint . || true'
-
-                // Lint CSS files
-                sh 'stylelint "**/*.css" || true'
-
-                // Lint JS files
-                sh 'eslint . || true'
             }
         }
 
         stage('Archive Website') {
             steps {
-                echo '📦 Archiving built website...'
-                archiveArtifacts artifacts: '**/*.html, **/*.css, **/*.js', fingerprint: true
+                echo '📦 Archiving static site files...'
+                archiveArtifacts artifacts: '**/*', fingerprint: true
             }
         }
     }
