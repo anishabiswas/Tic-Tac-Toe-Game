@@ -1,11 +1,17 @@
 pipeline {
     agent any
 
+    environment {
+        GITHUB_TOKEN = credentials('github-token')
+        GITHUB_REPO = 'https://github.com/anishabiswas/Tic-Tac-Toe-Game'
+        DEPLOY_BRANCH = 'gh-pages'  // Production branch for static hosting
+    }
+
     stages {
         stage('Checkout') {
             steps {
                 echo '📥 Cloning repository...'
-                git branch: 'main', url: 'https://github.com/anishabiswas/Tic-Tac-Toe-Game'
+                git branch: 'main', url: env.GITHUB_REPO
             }
         }
 
@@ -13,45 +19,63 @@ pipeline {
             steps {
                 echo '📦 Installing npm packages...'
                 sh '''
-                # Initialize npm if package.json does not exist
                 if [ ! -f package.json ]; then
                   npm init -y
                 fi
-
-                # Install dependencies locally (no -g)
                 npm install --save-dev htmlhint stylelint stylelint-config-standard eslint@8
                 '''
             }
         }
 
-        stage('Lint HTML/CSS/JS') {
+        stage('Lint & Fix Code') {
             steps {
                 echo '🔍 Running linters...'
-
                 sh '''
-                # HTML lint
                 npx htmlhint .
-
-                # Stylelint with auto-fix
                 npx stylelint "**/*.css" --fix
-
-                # ESLint (v8) with auto-fix
                 npx eslint . --fix
                 '''
             }
         }
 
-        stage('Archive Website') {
+        stage('Build') {
             steps {
-                echo '📦 Archiving project files...'
-                archiveArtifacts artifacts: '**/*', fingerprint: true
+                echo '🏗️ Creating build artifact...'
+                sh '''
+                # For simple HTML/CSS/JS, just copy files to dist folder
+                rm -rf dist
+                mkdir dist
+                cp -r *.html *.css *.js dist/
+                '''
+            }
+        }
+
+        stage('Archive Artifact') {
+            steps {
+                echo '📦 Archiving the build artifact...'
+                archiveArtifacts artifacts: 'dist/**', fingerprint: true
+            }
+        }
+
+        stage('Deploy to Production') {
+            steps {
+                echo '🚀 Deploying build artifact...'
+                sh '''
+                cd dist
+                git init
+                git checkout -b ${DEPLOY_BRANCH}
+                git add .
+                git commit -m "Deploy production build from Jenkins"
+                git remote add origin https://${GITHUB_TOKEN}@github.com/anishabiswas/Tic-Tac-Toe-Game
+                git push -f origin ${DEPLOY_BRANCH}
+                '''
             }
         }
     }
 
     post {
         success {
-            echo '✅ Pipeline completed successfully!'
+            echo '✅ Pipeline completed and deployed to production!'
         }
         failure {
             echo '❌ Pipeline failed!'
