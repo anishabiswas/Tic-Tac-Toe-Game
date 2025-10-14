@@ -64,6 +64,11 @@ pipeline {
                 cd dist
                 git init
                 git checkout -b ${DEPLOY_BRANCH}
+
+                 # Set Git author for this repository
+                git config user.name "anisha"
+                git config user.email "a27bong@gmail.com"
+
                 git add .
                 git commit -m "Deploy production build from Jenkins"
                 git remote add origin https://${GITHUB_TOKEN}@github.com/anishabiswas/Tic-Tac-Toe-Game
